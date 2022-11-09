@@ -7,17 +7,14 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
-import org.apache.http.client.HttpResponseException
-import org.junit.Rule
-import org.springframework.boot.test.system.OutputCaptureRule
+
+import java.util.regex.PatternSyntaxException
 
 import static org.springframework.http.MediaType.APPLICATION_JSON
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
 class SentenceControllerSpec extends Specification {
 
-    @Rule
-    OutputCaptureRule outputCaptureRule = new OutputCaptureRule()
     SentenceController sentenceController
     MockMvc mockMvc
     def validSentenceResponse = "\"This sentence is valid as per the rules.\""
@@ -26,9 +23,6 @@ class SentenceControllerSpec extends Specification {
     void setup() {
         sentenceController = new SentenceController(sentenceEvaluationService: Mock(SentenceEvaluationService))
         mockMvc = MockMvcBuilders.standaloneSetup(sentenceController).build()
-    }
-
-    void cleanup() {
     }
 
     def "validateSentence returns the correct response for a valid sentence"() {
@@ -53,4 +47,12 @@ class SentenceControllerSpec extends Specification {
         response.andReturn().getResponse().getContentAsString() == invalidSentenceResponse
     }
 
+    def "validateSentence returns an exception"() {
+        when:
+        def response = mockMvc.perform(get("/sentenceevaluator?inputSentence=invalid 3 sentence").contentType(APPLICATION_JSON))
+
+        then:
+        1 * sentenceController.sentenceEvaluationService.checkSentence("invalid 3 sentence") >> {new PatternSyntaxException() }
+        thrown Exception
+    }
 }
