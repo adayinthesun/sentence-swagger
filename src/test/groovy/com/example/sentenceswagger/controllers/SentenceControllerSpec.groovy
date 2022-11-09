@@ -49,10 +49,10 @@ class SentenceControllerSpec extends Specification {
 
     def "validateSentence returns an exception"() {
         when:
-        def response = mockMvc.perform(get("/sentenceevaluator?inputSentence=invalid 3 sentence").contentType(APPLICATION_JSON))
+        mockMvc.perform(get("/sentenceevaluator?inputSentence=invalid 3 sentence").contentType(APPLICATION_JSON))
 
         then:
-        1 * sentenceController.sentenceEvaluationService.checkSentence("invalid 3 sentence") >> {new PatternSyntaxException() }
+        1 * sentenceController.sentenceEvaluationService.checkSentence("invalid 3 sentence") >> { throw new PatternSyntaxException("","",-1)}
         thrown Exception
     }
 }
